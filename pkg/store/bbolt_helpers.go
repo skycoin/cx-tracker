@@ -13,8 +13,9 @@ import (
 var binaryEnc = binary.BigEndian
 
 var (
-	ErrBboltNoExist = errors.New("bbolt object does not exist")
-	ErrBboltInvalidValue = errors.New("invalid value in bbolt db")
+	ErrBboltObjectNotExist      = errors.New("bbolt object does not exist")
+	ErrBboltObjectAlreadyExists = errors.New("bbolt object already exists")
+	ErrBboltInvalidValue        = errors.New("invalid value in bbolt db")
 )
 
 const (
@@ -34,8 +35,13 @@ func openBboltDB(filename string) (*bbolt.DB, error) {
 var (
 	// specBucket is the identifier for the chain spec bucket
 	//   key: [33B: chain public key]
-	// value: [8B: uint64 iteration] [json encoded chain spec]
+	// value: [json encoded chain spec]
 	specBucket = []byte("spec")
+
+	// specByTickerBucket relates chain ticker to chain public key
+	//   key: [ticker string]
+	// value: [33B: chain public key]
+	specByTickerBucket = []byte("spec_by_ticker")
 
 	// countBucket contains counts of various objects
 	countBucket = []byte("count")

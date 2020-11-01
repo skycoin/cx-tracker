@@ -25,7 +25,6 @@ type SpecStore interface {
 	ChainSpecAll(ctx context.Context) ([]cxspec.ChainSpec, error)
 	ChainSpecByChainPK(ctx context.Context, chainPK cipher.PubKey) (cxspec.ChainSpec, error)
 	ChainSpecByCoinTicker(ctx context.Context, coinTicker string) (cxspec.ChainSpec, error)
-	ChainSpecExists(ctx context.Context, chainPK cipher.PubKey) (bool, error)
 	AddSpec(ctx context.Context, spec cxspec.ChainSpec) error
 	DelSpec(ctx context.Context, chainPK cipher.PubKey) error
 }
