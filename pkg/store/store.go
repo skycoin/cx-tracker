@@ -2,15 +2,9 @@ package store
 
 import (
 	"context"
-	"errors"
 
 	"github.com/SkycoinProject/cx-chains/src/cipher"
 	"github.com/SkycoinProject/cx/cxgo/cxspec"
-)
-
-var (
-	// ErrNotFound occurs when the requested object cannot be found in database.
-	ErrNotFound = errors.New("not found")
 )
 
 type ObjectType string
