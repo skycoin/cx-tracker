@@ -11,16 +11,13 @@ import (
 	"go.etcd.io/bbolt"
 )
 
+// BboltSpecStore implements SpecStore with a bbolt.DB database.
 type BboltSpecStore struct {
 	db *bbolt.DB
 }
 
-func NewBboltSpecStore(filename string) (*BboltSpecStore, error) {
-	db, err := openBboltDB(filename)
-	if err != nil {
-		return nil, err
-	}
-
+// NewBboltSpecStore creates a new BboltSpecStore with a given database file.
+func NewBboltSpecStore(db *bbolt.DB) (*BboltSpecStore, error) {
 	updateFunc := func(tx *bbolt.Tx) error {
 		if _, err := tx.CreateBucketIfNotExists(specBucket); err != nil {
 			return err
@@ -42,6 +39,7 @@ func NewBboltSpecStore(filename string) (*BboltSpecStore, error) {
 	return s, nil
 }
 
+// ChainSpecAll implements SpecStore.
 func (s *BboltSpecStore) ChainSpecAll(ctx context.Context) ([]cxspec.ChainSpec, error) {
 	var out []cxspec.ChainSpec
 
@@ -51,13 +49,8 @@ func (s *BboltSpecStore) ChainSpecAll(ctx context.Context) ([]cxspec.ChainSpec, 
 			out = make([]cxspec.ChainSpec, 0, n)
 
 			eachFunc := func(k, v []byte) error {
-				if len(v) < bboltSpecPrefixLen {
-					return fmt.Errorf("expected value to be >= %d: %w",
-						bboltSpecPrefixLen, ErrBboltInvalidValue)
-				}
-
 				var spec cxspec.ChainSpec
-				if err := json.Unmarshal(v[bboltSpecPrefixLen:], &spec); err != nil {
+				if err := json.Unmarshal(v, &spec); err != nil {
 					return err
 				}
 
@@ -76,6 +69,7 @@ func (s *BboltSpecStore) ChainSpecAll(ctx context.Context) ([]cxspec.ChainSpec, 
 	return out, nil
 }
 
+// ChainSpecByChainPK implements SpecStore.
 func (s *BboltSpecStore) ChainSpecByChainPK(ctx context.Context, chainPK cipher.PubKey) (cxspec.ChainSpec, error) {
 	var out cxspec.ChainSpec
 
@@ -92,8 +86,7 @@ func (s *BboltSpecStore) ChainSpecByChainPK(ctx context.Context, chainPK cipher.
 	return out, nil
 }
 
-
-
+// ChainSpecByCoinTicker implements SpecStore.
 func (s *BboltSpecStore) ChainSpecByCoinTicker(ctx context.Context, coinTicker string) (cxspec.ChainSpec, error) {
 	var out cxspec.ChainSpec
 
@@ -115,6 +108,7 @@ func (s *BboltSpecStore) ChainSpecByCoinTicker(ctx context.Context, coinTicker s
 	return out, nil
 }
 
+// AddSpec implements SpecStore.
 func (s *BboltSpecStore) AddSpec(ctx context.Context, spec cxspec.ChainSpec) error {
 	b, err := json.Marshal(spec)
 	if err != nil {
@@ -139,6 +133,7 @@ func (s *BboltSpecStore) AddSpec(ctx context.Context, spec cxspec.ChainSpec) err
 	return doAsync(ctx, action)
 }
 
+// DelSpec implements SpecStore.
 func (s *BboltSpecStore) DelSpec(ctx context.Context, chainPK cipher.PubKey) error {
 	action := func() error {
 		return s.db.Update(func(tx *bbolt.Tx) error {
@@ -156,6 +151,7 @@ func (s *BboltSpecStore) DelSpec(ctx context.Context, chainPK cipher.PubKey) err
 			if err2 != nil {
 				return err2
 			}
+
 			return nil
 		})
 	}
@@ -171,10 +167,6 @@ func bboltChainSpecByPK(tx *bbolt.Tx, pk cipher.PubKey, spec *cxspec.ChainSpec) 
 	v := tx.Bucket(specBucket).Get(pk[:])
 	if v == nil {
 		return ErrBboltObjectNotExist
-	}
-	if len(v) < bboltSpecPrefixLen {
-		return fmt.Errorf("expected value to be >= %d: %w",
-			bboltSpecPrefixLen, ErrBboltInvalidValue)
 	}
 
 	return json.Unmarshal(v, spec)

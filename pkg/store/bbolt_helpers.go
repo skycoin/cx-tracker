@@ -21,11 +21,10 @@ var (
 const (
 	bboltFileMode        = os.FileMode(0600)
 	bboltFileOpenTimeout = time.Second * 10
-
-	bboltSpecPrefixLen = 8
 )
 
-func openBboltDB(filename string) (*bbolt.DB, error) {
+// OpenBboltDB opens a bbolt database file.
+func OpenBboltDB(filename string) (*bbolt.DB, error) {
 	opts := bbolt.DefaultOptions
 	opts.Timeout = bboltFileOpenTimeout
 
@@ -42,6 +41,19 @@ var (
 	//   key: [ticker string]
 	// value: [33B: chain public key]
 	specByTickerBucket = []byte("spec_by_ticker")
+
+	// trustedNodesBucket is the identifier for the trusted nodes bucket
+	//   key: [33B: chain public key]
+	// value: [json encoded trusted nodes object]
+	trustedNodesBucket = []byte("trusted_nodes")
+
+	// clientNodesBucket is the identifier for the client nodes bucket
+	//   key: [33B: chain public key]
+	// value: [bucket of client node addresses keys]
+	clientNodesBucket = []byte("client_nodes")
+
+	// sigBucket is the identifier
+	sigBucket = []byte("sig")
 
 	// countBucket contains counts of various objects
 	countBucket = []byte("count")

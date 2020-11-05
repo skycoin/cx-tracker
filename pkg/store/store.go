@@ -29,22 +29,25 @@ type SpecStore interface {
 	DelSpec(ctx context.Context, chainPK cipher.PubKey) error
 }
 
+// TrustedNodesStore represents a trusted nodes database implementation.
 type TrustedNodesStore interface {
 	TrustedNodesByChainPK(ctx context.Context, chainPK cipher.PubKey) (cxspec.TrustedNodes, error)
 	AddTrustedNodes(ctx context.Context, nodes cxspec.TrustedNodes) error
 	DelTrustedNodes(ctx context.Context, chainPK cipher.PubKey) error
 }
 
+// ClientNodesStore represents a client nodes database implementation.
 type ClientNodesStore interface {
-	ClientNodesRand(ctx context.Context, max int) ([]string, error)
+	ClientNodesRand(ctx context.Context, chainPK cipher.PubKey, max int) ([]string, error)
 	AddClientNodes(ctx context.Context, chainPK cipher.PubKey, addresses []string) error
 	DelClientNodes(ctx context.Context, chainPK cipher.PubKey, addresses []string) error
+	DelAllOfChainPK(ctx context.Context, chainPK cipher.PubKey) error
 }
 
 // SigStore represents a signature database implementation.
 type SigStore interface {
-	Sig(ot ObjectType, pk cipher.PubKey) (cipher.Sig, uint64, error)
-	SigList(ot ObjectType, pks []cipher.PubKey) ([]cipher.Sig, error)
-	AddSig(ot ObjectType, pk cipher.PubKey, sig cipher.Sig, oi uint64) error
-	DelSig(ot ObjectType, pk cipher.PubKey) error
+	Sig(ctx context.Context, ot ObjectType, pk cipher.PubKey) (cipher.Sig, error)
+	SigList(ctx context.Context, ot ObjectType, pks []cipher.PubKey) ([]cipher.Sig, error)
+	AddSig(ctx context.Context, ot ObjectType, pk cipher.PubKey, sig cipher.Sig) error
+	DelSig(ctx context.Context, ot ObjectType, pk cipher.PubKey) error
 }
