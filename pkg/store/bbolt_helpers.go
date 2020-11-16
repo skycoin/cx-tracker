@@ -12,6 +12,17 @@ import (
 
 var binaryEnc = binary.BigEndian
 
+func encodeTime(t time.Time) []byte {
+	b := make([]byte, 8)
+	binaryEnc.PutUint64(b, uint64(t.Unix()))
+	return b
+}
+
+func decodeTime(b []byte) time.Time {
+	unix := int64(binaryEnc.Uint64(b))
+	return time.Unix(unix, 0)
+}
+
 var (
 	ErrBboltObjectNotExist      = errors.New("bbolt object does not exist")
 	ErrBboltObjectAlreadyExists = errors.New("bbolt object already exists")
@@ -59,12 +70,34 @@ var (
 	countBucket = []byte("count")
 )
 
-func objectCount(tx *bbolt.Tx, bucketName []byte) uint64 {
-	b := tx.Bucket(countBucket).Get(bucketName)
-	if b == nil {
+func objectCount(tx *bbolt.Tx, key []byte) uint64 {
+	v := tx.Bucket(countBucket).Get(key)
+	if len(v) != 8 {
 		return 0
 	}
-	return binaryEnc.Uint64(b)
+	return binaryEnc.Uint64(v)
+}
+
+func incrementObjectCount(tx *bbolt.Tx, key []byte, delta uint64) error {
+	b := tx.Bucket(countBucket)
+
+	v := b.Get(key)
+	if len(v) != 8 {
+		v = make([]byte, 8)
+	}
+	binaryEnc.PutUint64(v, binaryEnc.Uint64(v)+delta)
+	return b.Put(key, v)
+}
+
+func decrementObjectCount(tx *bbolt.Tx, key []byte, delta uint64) error {
+	b := tx.Bucket(countBucket)
+
+	v := b.Get(key)
+	if len(v) != 8 {
+		v = make([]byte, 8)
+	}
+	binaryEnc.PutUint64(v, binaryEnc.Uint64(v)-delta)
+	return b.Put(key, v)
 }
 
 func doAsync(ctx context.Context, action func() error) error {

@@ -7,6 +7,7 @@ github.com/NYTimes/gziphandler v1.1.1/go.mod h1:n/CVRwUEOgIxrgPvAQhUUr9oeUtvrhMo
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
 github.com/SkycoinProject/cx v0.7.2-0.20201022102643-8d548a697fa8 h1:eVpFuuR+9e3vfaT5VdCZ781llbc+Ix0hQ8FnSSrjZ08=
 github.com/SkycoinProject/cx v0.7.2-0.20201022102643-8d548a697fa8/go.mod h1:rpO/qGe5u663EQGzWNeO8xZfFbPczmJXt+icyxKrW6w=
+github.com/SkycoinProject/cx-chains v0.24.1 h1:wJRMboZ2Y77CXBe+6QuY1JNiQ3PliyzvAsWEMtlovcg=
 github.com/SkycoinProject/cx-chains v0.24.2-0.20200412040944-7696b1dfd81c h1:P52jSZaYdoAwYBzKP6q1TtNhvnspguM0LdvQoJZHW1s=
 github.com/SkycoinProject/cx-chains v0.24.2-0.20200412040944-7696b1dfd81c/go.mod h1:ojJGzbcz7J599p7NkHEI6tZ8R9EXfSLZkoiWiWRxvEs=
 github.com/SkycoinProject/dmsg v0.0.0-20200306152741-acee74fa4514/go.mod h1:DzykXMLlx6Fx0fGjZsCIRas/MIvxW8DZpmDA6f2nCRk=
@@ -64,6 +65,8 @@ github.com/fsnotify/fsnotify v1.4.7 h1:IXs+QLmnXW2CcXuY+8Mzv/fWEsPGWxqefPtCP5CnV
 github.com/fsnotify/fsnotify v1.4.7/go.mod h1:jwhsz4b93w/PPRr/qN1Yymfu8t87LnFCMoQvtojpjFo=
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
 github.com/go-chi/chi v4.0.2+incompatible/go.mod h1:eB3wogJHnLi3x/kFX2A+IbTBlXxmMeXJVKy9tTv1XzQ=
+github.com/go-chi/chi v4.1.2+incompatible h1:fGFk2Gmi/YKXk0OmGfBh0WgmN3XB8lVnEyNz34tQRec=
+github.com/go-chi/chi v4.1.2+incompatible/go.mod h1:eB3wogJHnLi3x/kFX2A+IbTBlXxmMeXJVKy9tTv1XzQ=
 github.com/go-gl/gl v0.0.0-20190320180904-bf2b1f2f34d7/go.mod h1:482civXOzJJCPzJ4ZOX/pwvXBWSnzD4OKMdH4ClKGbk=
 github.com/go-gl/glfw/v3.3/glfw v0.0.0-20200222043503-6f7a984d4dc4/go.mod h1:tQ2UAYgL5IevRw8kRxooKSPJfGvJ9fJQFa0TUsXzTg8=
 github.com/go-gl/glfw/v3.3/glfw v0.0.0-20200707082815-5321531c36a2/go.mod h1:tQ2UAYgL5IevRw8kRxooKSPJfGvJ9fJQFa0TUsXzTg8=

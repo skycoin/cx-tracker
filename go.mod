@@ -9,6 +9,8 @@ require (
 	github.com/blang/semver v3.5.1+incompatible // indirect
 	github.com/boltdb/bolt v1.3.1 // indirect
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
+	github.com/go-chi/chi v4.1.2+incompatible
+	github.com/sirupsen/logrus v1.6.0
 	go.etcd.io/bbolt v1.3.5
 )
 

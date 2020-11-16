@@ -7,7 +7,6 @@ import (
 	"fmt"
 
 	"github.com/SkycoinProject/cx-chains/src/cipher"
-	"github.com/SkycoinProject/cx/cxgo/cxspec"
 	"go.etcd.io/bbolt"
 )
 
@@ -40,16 +39,16 @@ func NewBboltSpecStore(db *bbolt.DB) (*BboltSpecStore, error) {
 }
 
 // ChainSpecAll implements SpecStore.
-func (s *BboltSpecStore) ChainSpecAll(ctx context.Context) ([]cxspec.ChainSpec, error) {
-	var out []cxspec.ChainSpec
+func (s *BboltSpecStore) ChainSpecAll(ctx context.Context) ([]SignedSpec, error) {
+	var out []SignedSpec
 
 	action := func() error {
 		return s.db.View(func(tx *bbolt.Tx) error {
 			n := objectCount(tx, specBucket)
-			out = make([]cxspec.ChainSpec, 0, n)
+			out = make([]SignedSpec, 0, n)
 
 			eachFunc := func(k, v []byte) error {
-				var spec cxspec.ChainSpec
+				var spec SignedSpec
 				if err := json.Unmarshal(v, &spec); err != nil {
 					return err
 				}
@@ -70,8 +69,8 @@ func (s *BboltSpecStore) ChainSpecAll(ctx context.Context) ([]cxspec.ChainSpec, 
 }
 
 // ChainSpecByChainPK implements SpecStore.
-func (s *BboltSpecStore) ChainSpecByChainPK(ctx context.Context, chainPK cipher.PubKey) (cxspec.ChainSpec, error) {
-	var out cxspec.ChainSpec
+func (s *BboltSpecStore) ChainSpecByChainPK(ctx context.Context, chainPK cipher.PubKey) (SignedSpec, error) {
+	var out SignedSpec
 
 	action := func() error {
 		return s.db.View(func(tx *bbolt.Tx) error {
@@ -80,15 +79,15 @@ func (s *BboltSpecStore) ChainSpecByChainPK(ctx context.Context, chainPK cipher.
 	}
 
 	if err := doAsync(ctx, action); err != nil {
-		return cxspec.ChainSpec{}, err
+		return SignedSpec{}, err
 	}
 
 	return out, nil
 }
 
 // ChainSpecByCoinTicker implements SpecStore.
-func (s *BboltSpecStore) ChainSpecByCoinTicker(ctx context.Context, coinTicker string) (cxspec.ChainSpec, error) {
-	var out cxspec.ChainSpec
+func (s *BboltSpecStore) ChainSpecByCoinTicker(ctx context.Context, coinTicker string) (SignedSpec, error) {
+	var out SignedSpec
 
 	action := func() error {
 		return s.db.View(func(tx *bbolt.Tx) error {
@@ -102,31 +101,31 @@ func (s *BboltSpecStore) ChainSpecByCoinTicker(ctx context.Context, coinTicker s
 	}
 
 	if err := doAsync(ctx, action); err != nil {
-		return cxspec.ChainSpec{}, err
+		return SignedSpec{}, err
 	}
 
 	return out, nil
 }
 
 // AddSpec implements SpecStore.
-func (s *BboltSpecStore) AddSpec(ctx context.Context, spec cxspec.ChainSpec) error {
+func (s *BboltSpecStore) AddSpec(ctx context.Context, spec SignedSpec) error {
 	b, err := json.Marshal(spec)
 	if err != nil {
 		return fmt.Errorf("failed to encode chain spec: %w", err)
 	}
-	chainPK := spec.ProcessedChainPubKey()
+	chainPK := spec.Spec.ProcessedChainPubKey()
 
 	action := func() error {
 		return s.db.Update(func(tx *bbolt.Tx) error {
 			var (
 				specV   = tx.Bucket(specBucket).Get(chainPK[:])
-				tickerV = tx.Bucket(specByTickerBucket).Get([]byte(spec.CoinTicker))
+				tickerV = tx.Bucket(specByTickerBucket).Get([]byte(spec.Spec.CoinTicker))
 			)
 			if specV != nil || tickerV != nil {
 				return errors.New("attempted to add chain spec with reused chain pk or ticker")
 			}
-			return tx.Bucket(specBucket).Put([]byte(spec.ChainPubKey), b)
-
+			// TODO: Implement replace check.
+			return tx.Bucket(specBucket).Put([]byte(spec.Spec.ChainPubKey), b)
 		})
 	}
 
@@ -137,13 +136,13 @@ func (s *BboltSpecStore) AddSpec(ctx context.Context, spec cxspec.ChainSpec) err
 func (s *BboltSpecStore) DelSpec(ctx context.Context, chainPK cipher.PubKey) error {
 	action := func() error {
 		return s.db.Update(func(tx *bbolt.Tx) error {
-			var spec cxspec.ChainSpec
+			var spec SignedSpec
 			if err := bboltChainSpecByPK(tx, chainPK, &spec); err != nil {
 				return err
 			}
 
 			err1 := tx.Bucket(specBucket).Delete(chainPK[:])
-			err2 := tx.Bucket(specByTickerBucket).Delete([]byte(spec.CoinTicker))
+			err2 := tx.Bucket(specByTickerBucket).Delete([]byte(spec.Spec.CoinTicker))
 
 			if err1 != nil {
 				return err1
@@ -163,7 +162,7 @@ func (s *BboltSpecStore) DelSpec(ctx context.Context, chainPK cipher.PubKey) err
 	<<< HELPER FUNCTIONS >>>
 */
 
-func bboltChainSpecByPK(tx *bbolt.Tx, pk cipher.PubKey, spec *cxspec.ChainSpec) error {
+func bboltChainSpecByPK(tx *bbolt.Tx, pk cipher.PubKey, spec *SignedSpec) error {
 	v := tx.Bucket(specBucket).Get(pk[:])
 	if v == nil {
 		return ErrBboltObjectNotExist

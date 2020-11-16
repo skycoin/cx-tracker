@@ -1,7 +1,6 @@
 package store
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 
@@ -46,7 +45,7 @@ func (ss *SignedSpec) Verify() error {
 // SignedTrustedNodes contains a trusted nodes object alongside a valid signature.
 type SignedTrustedNodes struct {
 	TrustedNodes cxspec.TrustedNodes `json:"trusted_nodes"`
-	Sig          string              `json:"sig"`
+	Sig          string              `json:"sig"` // hex representation of signature
 }
 
 // Verify checks the following:
@@ -78,16 +77,4 @@ func (sn *SignedTrustedNodes) Verify(lastI uint64) error {
 	}
 
 	return nil
-}
-
-// Aggregate is the aggregate of all store implementations.
-type Aggregate struct {
-	Specs        SpecStore
-	TrustedNodes TrustedNodesStore
-	ClientNodes  ClientNodesStore
-	Sigs         SigStore
-}
-
-func (a Aggregate) InjectSpec(ctx context.Context, spec *SignedSpec) {
-
 }
