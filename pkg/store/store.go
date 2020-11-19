@@ -4,14 +4,15 @@ import (
 	"context"
 
 	"github.com/SkycoinProject/cx-chains/src/cipher"
+	"github.com/SkycoinProject/cx/cxgo/cxspec"
 )
 
 // SpecStore represents a chain spec database implementation.
 type SpecStore interface {
-	ChainSpecAll(ctx context.Context) ([]SignedSpec, error)
-	ChainSpecByChainPK(ctx context.Context, chainPK cipher.PubKey) (SignedSpec, error)
-	ChainSpecByCoinTicker(ctx context.Context, coinTicker string) (SignedSpec, error)
-	AddSpec(ctx context.Context, spec SignedSpec) error
+	ChainSpecAll(ctx context.Context) ([]cxspec.SignedChainSpec, error)
+	ChainSpecByChainPK(ctx context.Context, chainPK cipher.PubKey) (cxspec.SignedChainSpec, error)
+	ChainSpecByCoinTicker(ctx context.Context, coinTicker string) (cxspec.SignedChainSpec, error)
+	AddSpec(ctx context.Context, spec cxspec.SignedChainSpec) error
 	DelSpec(ctx context.Context, chainPK cipher.PubKey) error
 }
 

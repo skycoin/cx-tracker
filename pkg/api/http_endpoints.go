@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/SkycoinProject/cx-chains/src/cipher"
+	"github.com/SkycoinProject/cx/cxgo/cxspec"
 	"github.com/sirupsen/logrus"
 
 	"github.com/skycoin/cx-tracker/pkg/store"
@@ -140,7 +141,7 @@ func postSpec(ss store.SpecStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log := httpLogger(r)
 
-		var spec store.SignedSpec
+		var spec cxspec.SignedChainSpec
 		if err := json.NewDecoder(r.Body).Decode(&spec); err != nil {
 			httpWriteError(log, w, http.StatusBadRequest,
 				fmt.Errorf("failed to decode spec: %w", err))
