@@ -6,11 +6,9 @@ import (
 	"fmt"
 	"net/http"
 	"path"
-	"strings"
 
 	"github.com/SkycoinProject/cx-chains/src/cipher"
 	"github.com/SkycoinProject/cx/cxgo/cxspec"
-	"github.com/sirupsen/logrus"
 
 	"github.com/skycoin/cx-tracker/pkg/store"
 )
@@ -20,10 +18,10 @@ const (
 	patternTicker = "/api/specs/ticker:*"
 )
 
-// getSpecs returns all chain specs
+// getAllSpecs returns all chain specs
 // URI: /api/specs
 // Method: GET
-func getSpecs(ss store.SpecStore) http.HandlerFunc {
+func getAllSpecs(ss store.SpecStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log := httpLogger(r)
 
@@ -45,92 +43,39 @@ func getSpecs(ss store.SpecStore) http.HandlerFunc {
 	}
 }
 
-// getSpec returns spec of given pk or ticker
-// URI: /api/specs/[pk:<pk>|ticker:<ticker>]
+// getSpecOfGenesisHash returns spec of given genesis hash
+// URI: /api/specs/<genesis-hash>
 // Method: GET
-func getSpec(ss store.SpecStore) http.HandlerFunc {
-	specOfPK := func(log logrus.FieldLogger, w http.ResponseWriter, r *http.Request) {
-		b := path.Base(r.URL.EscapedPath())
-		pkStr := strings.TrimPrefix(b, "pk:")
-
-		pk, err := cipher.PubKeyFromHex(pkStr)
-		if err != nil {
-			httpWriteError(log, w, http.StatusBadRequest,
-				fmt.Errorf("provided invalid pk '%s': %w", pkStr, err))
-			return
-		}
-
-		spec, err := ss.ChainSpecByChainPK(r.Context(), pk)
-		if err != nil {
-			if errors.Is(err, store.ErrBboltObjectNotExist) {
-				httpWriteError(log, w, http.StatusNotFound, err)
-				return
-			}
-
-			httpWriteError(log, w, http.StatusInternalServerError, err)
-			return
-		}
-
-		if err := spec.Verify(); err != nil {
-			httpWriteError(log, w, http.StatusInternalServerError, err)
-			return
-		}
-
-		httpWriteJson(log, w, r, http.StatusOK, spec)
-	}
-
-	specOfTicker := func(log logrus.FieldLogger, w http.ResponseWriter, r *http.Request) {
-		b := path.Base(r.URL.EscapedPath())
-		ticker := strings.TrimPrefix(b, "ticker:")
-		ticker = strings.TrimSpace(strings.ToUpper(ticker))
-
-		spec, err := ss.ChainSpecByCoinTicker(r.Context(), ticker)
-		if err != nil {
-			if errors.Is(err, store.ErrBboltObjectNotExist) {
-				httpWriteError(log, w, http.StatusNotFound, err)
-				return
-			}
-
-			httpWriteError(log, w, http.StatusInternalServerError, err)
-			return
-		}
-
-		if err := spec.Verify(); err != nil {
-			httpWriteError(log, w, http.StatusInternalServerError, err)
-			return
-		}
-
-		httpWriteJson(log, w, r, http.StatusOK, spec)
-	}
-
+func getSpecOfGenesisHash(ss store.SpecStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log := httpLogger(r)
 
-		escPath := r.URL.EscapedPath()
+		hashStr := path.Base(r.URL.EscapedPath())
 
-		isPK, err := path.Match(patternPK, escPath)
+		hash, err := cipher.SHA256FromHex(hashStr)
 		if err != nil {
+			httpWriteError(log, w, http.StatusBadRequest,
+				fmt.Errorf("failed to decode hash '%s': %w", hashStr, err))
+			return
+		}
+
+		spec, err := ss.ChainSpec(r.Context(), hash)
+		if err != nil {
+			if errors.Is(err, store.ErrBboltObjectNotExist) {
+				httpWriteError(log, w, http.StatusNotFound, err)
+				return
+			}
+
 			httpWriteError(log, w, http.StatusInternalServerError, err)
 			return
 		}
-		if isPK {
-			specOfPK(log, w, r)
-			return
-		}
 
-		isTicker, err := path.Match(patternTicker, escPath)
-		if err != nil {
+		if err := spec.Verify(); err != nil {
 			httpWriteError(log, w, http.StatusInternalServerError, err)
 			return
 		}
-		if isTicker {
-			specOfTicker(log, w, r)
-			return
-		}
 
-		// handle invalid requests
-		httpWriteError(log, w, http.StatusBadRequest,
-			fmt.Errorf("request's path does not match '%s' or '%s'", patternPK, patternTicker))
+		httpWriteJson(log, w, r, http.StatusOK, spec)
 	}
 }
 
@@ -161,26 +106,28 @@ func postSpec(ss store.SpecStore) http.HandlerFunc {
 				return
 			}
 		}
+
+		httpWriteJson(log, w, r, http.StatusOK, true)
 	}
 }
 
 // deleteSpec deletes a chain spec of given pk
-// URI: /api/spec/pk:<pk>
+// TODO @evanlinjin: We need to sign this.
+// URI: /api/spec/<genesis-hash>
 // Method: DELETE
 func deleteSpec(ss store.SpecStore) http.HandlerFunc {
-	deleteOfPK := func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
 		log := httpLogger(r)
 
-		b := path.Base(r.URL.EscapedPath())
-		pkStr := strings.TrimPrefix(b, "pk:")
+		hashStr := path.Base(r.URL.EscapedPath())
 
-		pk, err := cipher.PubKeyFromHex(pkStr)
+		hash, err := cipher.SHA256FromHex(hashStr)
 		if err != nil {
 			httpWriteError(log, w, http.StatusBadRequest,
-				fmt.Errorf("failed to verify pk: %w", err))
+				fmt.Errorf("failed to decode hash '%s': %w", hashStr, err))
 		}
 
-		if err := ss.DelSpec(r.Context(), pk); err != nil {
+		if err := ss.DelSpec(r.Context(), hash); err != nil {
 			if errors.Is(store.ErrBboltObjectNotExist, err) {
 				httpWriteError(log, w, http.StatusNotFound, err)
 				return
@@ -191,37 +138,5 @@ func deleteSpec(ss store.SpecStore) http.HandlerFunc {
 		}
 
 		httpWriteJson(log, w, r, http.StatusOK, true)
-	}
-
-	return func(w http.ResponseWriter, r *http.Request) {
-		log := httpLogger(r)
-
-		escPath := r.URL.RequestURI()
-
-		isPK, err := path.Match(patternPK, escPath)
-		if err != nil {
-			httpWriteError(log, w, http.StatusInternalServerError, err)
-			return
-		}
-		if isPK {
-			deleteOfPK(w, r)
-			return
-		}
-
-		isTicker, err := path.Match(patternTicker, escPath)
-		if err != nil {
-			httpWriteError(log, w, http.StatusInternalServerError, err)
-			return
-		}
-		if isTicker {
-			// TODO: actually implement this
-			httpWriteError(log, w, http.StatusNotImplemented,
-				errors.New("endpoint 'DELETE /api/spec/ticker:<ticker>' is not implemented"))
-			return
-		}
-
-		// handle invalid requests
-		httpWriteError(log, w, http.StatusBadRequest,
-			fmt.Errorf("request's path does not match '%s' or '%s'", patternPK, patternTicker))
 	}
 }

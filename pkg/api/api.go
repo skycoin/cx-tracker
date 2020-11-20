@@ -25,7 +25,7 @@ func NewHTTPRouter(ss store.SpecStore) http.Handler {
 	r.HandleFunc("/api/specs", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
-			getSpecs(ss)(w, r)
+			getAllSpecs(ss)(w, r)
 			return
 
 		case http.MethodPost:
@@ -40,7 +40,7 @@ func NewHTTPRouter(ss store.SpecStore) http.Handler {
 	r.HandleFunc("/api/specs/", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
-			getSpec(ss)(w, r)
+			getSpecOfGenesisHash(ss)(w, r)
 			return
 
 		case http.MethodDelete:

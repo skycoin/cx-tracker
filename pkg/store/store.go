@@ -10,10 +10,9 @@ import (
 // SpecStore represents a chain spec database implementation.
 type SpecStore interface {
 	ChainSpecAll(ctx context.Context) ([]cxspec.SignedChainSpec, error)
-	ChainSpecByChainPK(ctx context.Context, chainPK cipher.PubKey) (cxspec.SignedChainSpec, error)
-	ChainSpecByCoinTicker(ctx context.Context, coinTicker string) (cxspec.SignedChainSpec, error)
+	ChainSpec(ctx context.Context, hash cipher.SHA256) (cxspec.SignedChainSpec, error)
 	AddSpec(ctx context.Context, spec cxspec.SignedChainSpec) error
-	DelSpec(ctx context.Context, chainPK cipher.PubKey) error
+	DelSpec(ctx context.Context, hash cipher.SHA256) error
 }
 
 // PeersStore represents a peers database implementation.

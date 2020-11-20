@@ -44,27 +44,14 @@ func OpenBboltDB(filename string) (*bbolt.DB, error) {
 
 var (
 	// specBucket is the identifier for the chain spec bucket
-	//   key: [33B: chain public key]
+	//   key: [32B: genesis hash]
 	// value: [json encoded chain spec]
 	specBucket = []byte("spec")
-
-	// specByTickerBucket relates chain ticker to chain public key
-	//   key: [ticker string]
-	// value: [33B: chain public key]
-	specByTickerBucket = []byte("spec_by_ticker")
-
-	// trustedNodesBucket is the identifier for the trusted nodes bucket
-	//   key: [33B: chain public key]
-	// value: [json encoded trusted nodes object]
-	trustedNodesBucket = []byte("trusted_nodes")
 
 	// clientNodesBucket is the identifier for the client nodes bucket
 	//   key: [33B: chain public key]
 	// value: [bucket of client node addresses keys]
 	clientNodesBucket = []byte("client_nodes")
-
-	// sigBucket is the identifier
-	sigBucket = []byte("sig")
 
 	// countBucket contains counts of various objects
 	countBucket = []byte("count")
