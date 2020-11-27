@@ -44,14 +44,14 @@ func OpenBboltDB(filename string) (*bbolt.DB, error) {
 
 var (
 	// specBucket is the identifier for the chain spec bucket
-	//   key: [32B: genesis hash]
+	//   key: [32B: genesis block hash]
 	// value: [json encoded chain spec]
 	specBucket = []byte("spec")
 
-	// clientNodesBucket is the identifier for the client nodes bucket
-	//   key: [33B: chain public key]
-	// value: [bucket of client node addresses keys]
-	clientNodesBucket = []byte("client_nodes")
+	// peersBucket is the identifier for the peers bucket
+	//   key: [32B: genesis block hash]
+	// value: [bucket of "addresses:timestamp"]
+	peersBucket = []byte("client_nodes")
 
 	// countBucket contains counts of various objects
 	countBucket = []byte("count")

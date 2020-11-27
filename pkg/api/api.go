@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/SkycoinProject/cx-chains/src/util/logging"
@@ -25,6 +26,7 @@ func NewHTTPRouter(ss store.SpecStore) http.Handler {
 	r.HandleFunc("/api/specs", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
+			fmt.Println("MethodGet")
 			getAllSpecs(ss)(w, r)
 			return
 
@@ -37,7 +39,7 @@ func NewHTTPRouter(ss store.SpecStore) http.Handler {
 		}
 	})
 
-	r.HandleFunc("/api/specs/", func(w http.ResponseWriter, r *http.Request) {
+	r.HandleFunc("/api/specs/*", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
 			getSpecOfGenesisHash(ss)(w, r)

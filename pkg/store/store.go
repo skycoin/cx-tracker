@@ -17,10 +17,10 @@ type SpecStore interface {
 
 // PeersStore represents a peers database implementation.
 type PeersStore interface {
-	RandPeers(ctx context.Context, chainPK cipher.PubKey, max int) ([]string, error)
-	AddPeer(ctx context.Context, chainPK cipher.PubKey, addr string) error
-	DelPeer(ctx context.Context, chainPK cipher.PubKey, addr string) error
-	DelAllOfPK(ctx context.Context, chainPK cipher.PubKey) error
+	RandPeers(ctx context.Context, hash cipher.SHA256, max int) ([]string, error)
+	AddPeer(ctx context.Context, hash cipher.SHA256, addr string) error
+	DelPeer(ctx context.Context, hash cipher.SHA256, addr string) error
+	DelAllOfPK(ctx context.Context, hash cipher.SHA256) error
 }
 
 // DeleteProblematicSpecs removes problematic specs

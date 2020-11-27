@@ -21,7 +21,7 @@ func NewBboltClientNodesStore(db *bbolt.DB, timeout time.Duration) (*BboltClient
 	}
 
 	updateFunc := func(tx *bbolt.Tx) error {
-		if _, err := tx.CreateBucketIfNotExists(clientNodesBucket); err != nil {
+		if _, err := tx.CreateBucketIfNotExists(peersBucket); err != nil {
 			return err
 		}
 		return nil
@@ -35,11 +35,11 @@ func NewBboltClientNodesStore(db *bbolt.DB, timeout time.Duration) (*BboltClient
 	return s, nil
 }
 
-func (s *BboltClientNodesStore) RandPeers(ctx context.Context, chainPK cipher.PubKey, max int) ([]string, error) {
+func (s *BboltClientNodesStore) RandPeers(ctx context.Context, hash cipher.SHA256, max int) ([]string, error) {
 	all := make([]string, 0, 100)
 	action := func() error {
 		return s.db.View(func(tx *bbolt.Tx) error {
-			b := tx.Bucket(clientNodesBucket).Bucket(chainPK[:])
+			b := tx.Bucket(peersBucket).Bucket(hash[:])
 
 			rangeFunc := func(addr, rawTime []byte) error {
 				// If timeout is set, and current time has passed expiration,
@@ -80,12 +80,12 @@ func (s *BboltClientNodesStore) RandPeers(ctx context.Context, chainPK cipher.Pu
 	return out, nil
 }
 
-func (s *BboltClientNodesStore) AddPeer(ctx context.Context, chainPK cipher.PubKey, addr string) error {
+func (s *BboltClientNodesStore) AddPeer(ctx context.Context, hash cipher.SHA256, addr string) error {
 	action := func() error {
 		return s.db.Update(func(tx *bbolt.Tx) error {
-			b, err := tx.Bucket(clientNodesBucket).CreateBucketIfNotExists(chainPK[:])
+			b, err := tx.Bucket(peersBucket).CreateBucketIfNotExists(hash[:])
 			if err != nil {
-				return fmt.Errorf("failed to find client nodes bucket of pk '%s': %w", chainPK.Hex(), err)
+				return fmt.Errorf("failed to find client nodes bucket of genesis block hash '%s': %w", hash.Hex(), err)
 			}
 
 			if b.Get([]byte(addr)) != nil {
@@ -94,11 +94,11 @@ func (s *BboltClientNodesStore) AddPeer(ctx context.Context, chainPK cipher.PubK
 
 			if err := b.Put([]byte(addr), encodeTime(time.Now())); err != nil {
 				return fmt.Errorf("failed to put client node address '%s' in chain '%s': %w",
-					addr, chainPK.Hex(), err)
+					addr, hash.Hex(), err)
 			}
 
 			// increment count bucket.
-			countK := append(clientNodesBucket, chainPK[:]...)
+			countK := append(peersBucket, hash[:]...)
 			return incrementObjectCount(tx, countK, 1)
 		})
 	}
@@ -106,20 +106,20 @@ func (s *BboltClientNodesStore) AddPeer(ctx context.Context, chainPK cipher.PubK
 	return doAsync(ctx, action)
 }
 
-func (s *BboltClientNodesStore) DelPeer(ctx context.Context, chainPK cipher.PubKey, addr string) error {
+func (s *BboltClientNodesStore) DelPeer(ctx context.Context, hash cipher.SHA256, addr string) error {
 	action := func() error {
 		return s.db.Update(func(tx *bbolt.Tx) error {
-			b := tx.Bucket(clientNodesBucket).Bucket(chainPK[:])
+			b := tx.Bucket(peersBucket).Bucket(hash[:])
 			if b == nil {
-				return fmt.Errorf("failed to delete client nodes under chain pk '%s': %w",
-					chainPK.Hex(), ErrBboltObjectNotExist)
+				return fmt.Errorf("failed to delete client nodes under genesis block hash '%s': %w",
+					hash.Hex(), ErrBboltObjectNotExist)
 			}
 
 			if err := b.Delete([]byte(addr)); err != nil {
 				return fmt.Errorf("%v: %w", ErrBboltObjectNotExist, err)
 			}
 
-			countK := append(clientNodesBucket, chainPK[:]...)
+			countK := append(peersBucket, hash[:]...)
 			return decrementObjectCount(tx, countK, 1)
 		})
 	}
@@ -127,14 +127,14 @@ func (s *BboltClientNodesStore) DelPeer(ctx context.Context, chainPK cipher.PubK
 	return doAsync(ctx, action)
 }
 
-func (s *BboltClientNodesStore) DelAllOfPK(ctx context.Context, chainPK cipher.PubKey) error {
+func (s *BboltClientNodesStore) DelAllOfPK(ctx context.Context, hash cipher.SHA256) error {
 	action := func() error {
 		return s.db.Update(func(tx *bbolt.Tx) error {
-			if err := tx.Bucket(clientNodesBucket).DeleteBucket(chainPK[:]); err != nil {
+			if err := tx.Bucket(peersBucket).DeleteBucket(hash[:]); err != nil {
 				return err
 			}
 
-			countK := append(clientNodesBucket, chainPK[:]...)
+			countK := append(peersBucket, hash[:]...)
 			return tx.Bucket(countBucket).Delete(countK)
 		})
 	}
