@@ -36,36 +36,49 @@ func TestNewHTTPRouter(t *testing.T) {
 
 	httpC := cxspec.NewCXTrackerClient(logrus.New(), httpS.Client(), httpS.URL)
 
-	t.Run("single_spec", func(t *testing.T) {
-		spec, _ := randSpec(t, 1)
+	// Test 'single_spec' tests registration and deletion of chain specs one at
+	// a time.
+	const singleSpecRounds = 100
+	for i := 0; i < singleSpecRounds; i++ {
+		i := i
 
-		block, err := spec.Spec.GenerateGenesisBlock()
-		require.NoError(t, err)
+		t.Run("single_spec", func(t *testing.T) {
+			spec, _ := randSpec(t, i)
+			block, err := spec.Spec.GenerateGenesisBlock()
+			require.NoError(t, err)
 
-		// post spec
-		require.NoError(t, httpC.PostSpec(context.TODO(), spec))
+			// post spec
+			require.NoError(t, httpC.PostSpec(context.TODO(), spec))
 
-		// get spec by hash
-		spec2, err := httpC.SpecByGenesisHash(context.TODO(), block.HashHeader())
-		require.NoError(t, err)
-		require.Equal(t, spec.Sig, spec2.Sig)
+			// get spec by hash
+			spec2, err := httpC.SpecByGenesisHash(context.TODO(), block.HashHeader())
+			require.NoError(t, err)
+			require.Equal(t, spec.Sig, spec2.Sig)
 
-		// get all specs
-		allSpecs, err := httpC.AllSpecs(context.TODO())
-		require.NoError(t, err)
-		require.Len(t, allSpecs, 1)
-		require.Equal(t, spec.Sig, allSpecs[0].Sig)
+			// get all specs
+			allSpecs, err := httpC.AllSpecs(context.TODO())
+			require.NoError(t, err)
+			require.Len(t, allSpecs, 1)
+			require.Equal(t, spec.Sig, allSpecs[0].Sig)
 
-		// delete spec
-		require.NoError(t, httpC.DelSpec(context.TODO(), block.HashHeader()))
+			// delete spec
+			require.NoError(t, httpC.DelSpec(context.TODO(), block.HashHeader()))
 
-		// get all specs
-		allSpecs, err = httpC.AllSpecs(context.TODO())
-		require.NoError(t, err)
-		require.Len(t, allSpecs, 0)
-	})
+			// get all specs
+			allSpecs, err = httpC.AllSpecs(context.TODO())
+			require.NoError(t, err)
+			require.Len(t, allSpecs, 0)
+		})
+	}
+
+	// TODO @evanlinjin: We need more tests.
+	// - Multiple specification registration/destruction.
+	// - Invalid spec registration (test security checks; e.g. duplicates).
 }
 
+// randSpec generates a new spec of coin name 'coin%d' and ticker name 'COIN%d'
+// given the int 'i'.
+// A signed chain spec is returned alongside it's chain secret key.
 func randSpec(t *testing.T, i int) (cxspec.SignedChainSpec, cipher.SecKey) {
 	pk, sk := cipher.GenerateKeyPair()
 

@@ -13,11 +13,6 @@ import (
 	"github.com/skycoin/cx-tracker/pkg/store"
 )
 
-const (
-	patternPK     = "/api/specs/pk:*"
-	patternTicker = "/api/specs/ticker:*"
-)
-
 // getAllSpecs returns all chain specs
 // URI: /api/specs
 // Method: GET

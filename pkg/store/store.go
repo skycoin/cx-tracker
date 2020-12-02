@@ -5,6 +5,7 @@ import (
 
 	"github.com/SkycoinProject/cx-chains/src/cipher"
 	"github.com/SkycoinProject/cx/cxgo/cxspec"
+	cipher2 "github.com/skycoin/dmsg/cipher"
 )
 
 // SpecStore represents a chain spec database implementation.
@@ -17,13 +18,14 @@ type SpecStore interface {
 
 // PeersStore represents a peers database implementation.
 type PeersStore interface {
-	RandPeers(ctx context.Context, hash cipher.SHA256, max int) ([]string, error)
-	AddPeer(ctx context.Context, hash cipher.SHA256, addr string) error
-	DelPeer(ctx context.Context, hash cipher.SHA256, addr string) error
-	DelAllOfPK(ctx context.Context, hash cipher.SHA256) error
+	UpdateEntry(ctx context.Context, entry cxspec.SignedPeerEntry) error
+	Entry(ctx context.Context, pk cipher2.PubKey) (cxspec.SignedPeerEntry, error)
+	RandPeersOfChain(ctx context.Context, hash cipher2.SHA256, max int) ([]cxspec.CXChainAddresses, error)
+	GarbageCollect(ctx context.Context)
 }
 
-// DeleteProblematicSpecs removes problematic specs
+// DeleteProblematicSpecs removes problematic specs.
+// TODO @evanlinjin: Determine if this is still needed.
 func DeleteProblematicSpecs(ctx context.Context, ss SpecStore, pks []cipher.PubKey) error {
 	action := func() error {
 		var pk cipher.PubKey
