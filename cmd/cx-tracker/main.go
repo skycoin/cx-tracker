@@ -19,7 +19,7 @@ const (
 )
 
 var (
-	addr = ":8080" // serve address
+	addr = ":9091" // serve address
 	dbFile = "./cx_tracker.db" // database file path
 )
 
