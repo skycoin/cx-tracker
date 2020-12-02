@@ -87,8 +87,17 @@ func NewMemoryPeersStore(timeout time.Duration, size int) *MemoryPeersStore {
 }
 
 func (ps *MemoryPeersStore) UpdateEntry(_ context.Context, entry cxspec.SignedPeerEntry) error {
+	pk := entry.Entry.PublicKey
+
 	ps.mx.Lock()
-	ps.entries[entry.Entry.PublicKey] = entry
+
+	// check 'last_seen' value
+	oldEntry, ok := ps.entries[pk]
+	if ok && entry.Entry.LastSeen <= oldEntry.Entry.LastSeen {
+		return fmt.Errorf("updated entry's 'last_seen' field should be higher than that of last entry '%d'", oldEntry.Entry.LastSeen)
+	}
+
+	ps.entries[pk] = entry
 
 	for chainHash, addrs := range entry.Entry.CXChains {
 		aggregate, ok := ps.aggregates[chainHash]

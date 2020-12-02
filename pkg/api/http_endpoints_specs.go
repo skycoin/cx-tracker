@@ -100,6 +100,10 @@ func postSpec(ss store.SpecStore) http.HandlerFunc {
 					fmt.Errorf("new spec conflicts with current directory: %w", err))
 				return
 			}
+
+			httpWriteError(log, w, http.StatusInternalServerError,
+				fmt.Errorf("failed to post spec: %w", err))
+			return
 		}
 
 		httpWriteJson(log, w, r, http.StatusOK, true)

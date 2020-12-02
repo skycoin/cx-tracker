@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/SkycoinProject/cx-chains/src/util/logging"
@@ -12,7 +11,7 @@ import (
 )
 
 // NewHTTPRouter creates a new HTTP router.
-func NewHTTPRouter(ss store.SpecStore) http.Handler {
+func NewHTTPRouter(ss store.SpecStore, ps store.PeersStore) http.Handler {
 	log := logging.MustGetLogger("api")
 
 	r := chi.NewRouter()
@@ -26,7 +25,6 @@ func NewHTTPRouter(ss store.SpecStore) http.Handler {
 	r.HandleFunc("/api/specs", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
-			fmt.Println("MethodGet")
 			getAllSpecs(ss)(w, r)
 			return
 
@@ -47,6 +45,32 @@ func NewHTTPRouter(ss store.SpecStore) http.Handler {
 
 		case http.MethodDelete:
 			deleteSpec(ss)(w, r)
+			return
+
+		default:
+			http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+		}
+	})
+
+	r.HandleFunc("/api/peers", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			getPeersOfChain(ps)(w, r)
+			return
+
+		case http.MethodPost:
+			postPeers(ps)(w, r)
+			return
+
+		default:
+			http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+		}
+	})
+
+	r.HandleFunc("/api/peers/*", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			getPeer(ps)(w, r)
 			return
 
 		default:
