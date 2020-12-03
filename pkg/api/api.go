@@ -78,5 +78,16 @@ func NewHTTPRouter(ss store.SpecStore, ps store.PeersStore) http.Handler {
 		}
 	})
 
+	r.HandleFunc("/api/peerlists/*", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			getPeerList(ps)(w, r)
+			return
+
+		default:
+			http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+		}
+	})
+
 	return r
 }

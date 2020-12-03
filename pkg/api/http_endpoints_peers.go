@@ -7,11 +7,16 @@ import (
 	"net/http"
 	"path"
 	"strconv"
+	"strings"
 
 	"github.com/SkycoinProject/cx/cxgo/cxspec"
 	"github.com/skycoin/dmsg/cipher"
 
 	"github.com/skycoin/cx-tracker/pkg/store"
+)
+
+const (
+	defaultMaxPeers = 12
 )
 
 // getPeer returns peer of given public key
@@ -51,16 +56,16 @@ func getPeer(ps store.PeersStore) http.HandlerFunc {
 func getPeersOfChain(ps store.PeersStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log := httpLogger(r)
+		q := r.URL.Query()
 
-		maxStr := r.URL.Query().Get("max")
-		if maxStr == "" {
-			maxStr = "10"
-		}
-		max, err := strconv.Atoi(maxStr)
-		if err != nil {
-			httpWriteError(log, w, http.StatusBadRequest,
-				fmt.Errorf("invalid query value '%s' for 'max': %w", maxStr, err))
-			return
+		max := defaultMaxPeers
+		if maxStr := q.Get("max"); maxStr != "" {
+			var err error
+			if max, err = strconv.Atoi(maxStr); err != nil {
+				httpWriteError(log, w, http.StatusBadRequest,
+					fmt.Errorf("invalid query value '%s' for 'max': %w", maxStr, err))
+				return
+			}
 		}
 
 		hashStrs, ok := r.URL.Query()["chain"]
@@ -98,6 +103,59 @@ func getPeersOfChain(ps store.PeersStore) http.HandlerFunc {
 		}
 
 		httpWriteJson(log, w, r, http.StatusOK, out)
+	}
+}
+
+// getPeerList obtains a peer list
+// URI: /api/peerlists/<genesis-hash>.txt
+// Method: GET
+func getPeerList(ps store.PeersStore) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		log := httpLogger(r)
+		q := r.URL.Query()
+
+		max := defaultMaxPeers
+		if maxStr := q.Get("max"); maxStr != "" {
+			var err error
+			if max, err = strconv.Atoi(maxStr); err != nil {
+				httpWriteError(log, w, http.StatusBadRequest,
+					fmt.Errorf("invalid query value '%s' for 'max': %w", maxStr, err))
+				return
+			}
+		}
+
+		filename := path.Base(r.URL.EscapedPath())
+		hashStr := strings.TrimSuffix(filename, ".txt")
+
+		var hash cipher.SHA256
+		n, err := hex.Decode(hash[:], []byte(hashStr))
+		if err != nil {
+			httpWriteError(log, w, http.StatusBadRequest,
+				fmt.Errorf("invalid genesis hash provided '%s': %w", hashStr, err))
+			return
+		}
+		if n != len(cipher.SHA256{}) {
+			httpWriteError(log, w, http.StatusBadRequest,
+				fmt.Errorf("provided genesis hash has invalid length"))
+			return
+		}
+
+		peers, err := ps.RandPeersOfChain(r.Context(), hash, max)
+		if err != nil {
+			httpWriteError(log, w, http.StatusInternalServerError,
+				fmt.Errorf("failed to obtain peers: %w", err))
+			return
+		}
+
+		w.Header().Add("Content-Type", "text/plain")
+		w.WriteHeader(http.StatusOK)
+
+		for _, p := range peers {
+			if _, err := fmt.Fprintf(w, "%s\n", p.TCPAddr); err != nil {
+				log.WithError(err).Warn("Failed to write http response body.")
+				return
+			}
+		}
 	}
 }
 
