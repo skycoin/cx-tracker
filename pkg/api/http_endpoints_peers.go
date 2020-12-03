@@ -107,7 +107,7 @@ func getPeersOfChain(ps store.PeersStore) http.HandlerFunc {
 }
 
 // getPeerList obtains a peer list
-// URI: /api/peerlists/<genesis-hash>.txt
+// URI: /peerlists/<genesis-hash>.txt
 // Method: GET
 func getPeerList(ps store.PeersStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
