@@ -128,13 +128,13 @@ func getPeerList(ps store.PeersStore) http.HandlerFunc {
 		hashStr := strings.TrimSuffix(filename, ".txt")
 
 		var hash cipher.SHA256
-		n, err := hex.Decode(hash[:], []byte(hashStr))
+		hashB, err := hex.DecodeString(hashStr)
 		if err != nil {
 			httpWriteError(log, w, http.StatusBadRequest,
 				fmt.Errorf("invalid genesis hash provided '%s': %w", hashStr, err))
 			return
 		}
-		if n != len(cipher.SHA256{}) {
+		if n := copy(hash[:], hashB); n != len(cipher.SHA256{}) {
 			httpWriteError(log, w, http.StatusBadRequest,
 				fmt.Errorf("provided genesis hash has invalid length"))
 			return

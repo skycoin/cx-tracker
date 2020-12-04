@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
 	"math/rand"
 	"sync"
@@ -35,11 +36,10 @@ func (ca *chainAggregate) Rand(max int) []cxspec.CXChainAddresses {
 	ca.mx.Lock()
 
 	// determine skip range
-	skipMax := len(ca.m) - max
-	if skipMax < 0 {
-		skipMax = 0
+	var skipN = 0
+	if skipMax := len(ca.m) - max; skipMax > 0 {
+		skipN = randInst.Intn(skipMax)
 	}
-	skipN := randInst.Intn(skipMax)
 
 	// populate results
 	i := 0
@@ -99,12 +99,17 @@ func (ps *MemoryPeersStore) UpdateEntry(_ context.Context, entry cxspec.SignedPe
 
 	ps.entries[pk] = entry
 
-	for chainHash, addrs := range entry.Entry.CXChains {
-		aggregate, ok := ps.aggregates[chainHash]
+	for hashStr, addrs := range entry.Entry.CXChains {
+		var hash cipher.SHA256
+		if _, err := hex.Decode(hash[:], []byte(hashStr)); err != nil {
+			return fmt.Errorf("internal database error: %w", err)
+		}
+
+		aggregate, ok := ps.aggregates[hash]
 		if !ok {
 			// create if not exist
 			aggregate = newChainAggregate()
-			ps.aggregates[chainHash] = aggregate
+			ps.aggregates[hash] = aggregate
 		}
 
 		aggregate.Update(addrs)
