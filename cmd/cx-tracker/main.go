@@ -44,11 +44,16 @@ func main() {
 
 	peersS := store.NewMemoryPeersStore(memTimeout, memSize)
 	go func() {
+		log := logging.MustGetLogger("mem_gc")
+
 		t := time.NewTicker(memTimeout/2)
 		defer t.Stop()
 
-		for range t.C {
+		for start := range t.C {
+			log := log.WithField("start", start)
+			log.Debug("Starting garbage collection...")
 			peersS.GarbageCollect(context.Background())
+			log.WithField("elapsed", time.Since(start)).Info("Finished garbage collection.")
 		}
 	}()
 

@@ -57,11 +57,12 @@ func (ca *chainAggregate) Rand(max int) []cxspec.CXChainAddresses {
 }
 
 func (ca *chainAggregate) GarbageCollect(timeout time.Duration) int {
-	deadline := time.Now().Add(timeout).Unix()
+	now := time.Now().Unix()
+	timeoutS := int64(timeout.Seconds())
 
 	ca.mx.Lock()
 	for addrs, lastSeen := range ca.m {
-		if lastSeen > deadline {
+		if lastSeen+timeoutS < now {
 			delete(ca.m, addrs)
 		}
 	}
@@ -147,7 +148,7 @@ func (ps *MemoryPeersStore) RandPeersOfChain(_ context.Context, hash cipher.SHA2
 func (ps *MemoryPeersStore) GarbageCollect(_ context.Context) {
 	ps.mx.Lock()
 	for _, aggregate := range ps.aggregates {
-		go aggregate.GarbageCollect(ps.timeout)
+		aggregate.GarbageCollect(ps.timeout)
 	}
 	ps.mx.Unlock()
 }
