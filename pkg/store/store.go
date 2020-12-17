@@ -3,9 +3,9 @@ package store
 import (
 	"context"
 
-	"github.com/SkycoinProject/cx-chains/src/cipher"
-	"github.com/SkycoinProject/cx/cxgo/cxspec"
+	"github.com/skycoin/cx-chains/src/cx/cxspec"
 	cipher2 "github.com/skycoin/dmsg/cipher"
+	"github.com/skycoin/skycoin/src/cipher"
 )
 
 // SpecStore represents a chain spec database implementation.

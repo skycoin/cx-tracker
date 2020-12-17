@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/SkycoinProject/cx-chains/src/util/logging"
+	"github.com/skycoin/skycoin/src/util/logging"
 
 	"github.com/skycoin/cx-tracker/pkg/api"
 	"github.com/skycoin/cx-tracker/pkg/store"
@@ -19,7 +19,7 @@ const (
 )
 
 var (
-	addr = ":9091" // serve address
+	addr   = ":9091"           // serve address
 	dbFile = "./cx_tracker.db" // database file path
 )
 
@@ -46,7 +46,7 @@ func main() {
 	go func() {
 		log := logging.MustGetLogger("mem_gc")
 
-		t := time.NewTicker(memTimeout/2)
+		t := time.NewTicker(memTimeout / 2)
 		defer t.Stop()
 
 		for start := range t.C {

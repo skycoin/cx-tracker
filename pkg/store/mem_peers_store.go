@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/SkycoinProject/cx/cxgo/cxspec"
+	"github.com/skycoin/cx-chains/src/cx/cxspec"
 	"github.com/skycoin/dmsg/cipher"
 )
 
@@ -17,12 +17,12 @@ var (
 )
 
 type chainAggregate struct {
-	m map[cxspec.CXChainAddresses]int64 // value: last_seen timestamp
+	m  map[cxspec.CXChainAddresses]int64 // value: last_seen timestamp
 	mx sync.Mutex
 }
 
 func newChainAggregate() *chainAggregate {
-	return &chainAggregate{ m: make(map[cxspec.CXChainAddresses]int64, 1) }
+	return &chainAggregate{m: make(map[cxspec.CXChainAddresses]int64, 1)}
 }
 
 func (ca *chainAggregate) Update(addrs cxspec.CXChainAddresses) {

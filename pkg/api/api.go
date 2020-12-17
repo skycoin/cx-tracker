@@ -3,9 +3,9 @@ package api
 import (
 	"net/http"
 
-	"github.com/SkycoinProject/cx-chains/src/util/logging"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
+	"github.com/skycoin/skycoin/src/util/logging"
 
 	"github.com/skycoin/cx-tracker/pkg/store"
 )

@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"path"
 
-	"github.com/SkycoinProject/cx-chains/src/cipher"
-	"github.com/SkycoinProject/cx/cxgo/cxspec"
+	"github.com/skycoin/cx-chains/src/cx/cxspec"
+	"github.com/skycoin/skycoin/src/cipher"
 
 	"github.com/skycoin/cx-tracker/pkg/store"
 )

@@ -3,19 +3,11 @@ module github.com/skycoin/cx-tracker
 go 1.15
 
 require (
-	github.com/NYTimes/gziphandler v1.1.1 // indirect
-	github.com/SkycoinProject/cx v0.7.2-0.20201022102643-8d548a697fa8
-	github.com/SkycoinProject/cx-chains v0.24.2-0.20200412040944-7696b1dfd81c
-	github.com/blang/semver v3.5.1+incompatible // indirect
-	github.com/boltdb/bolt v1.3.1 // indirect
-	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
 	github.com/go-chi/chi v4.1.2+incompatible
 	github.com/sirupsen/logrus v1.7.0
-	github.com/skycoin/dmsg v0.0.0-20201124135713-d832ca828200
+	github.com/skycoin/cx-chains v0.24.2-0.20201210070414-7d7ad19dd487
+	github.com/skycoin/dmsg v0.0.0-20201130133816-e601063284fa
+	github.com/skycoin/skycoin v0.27.1
 	github.com/stretchr/testify v1.6.1
 	go.etcd.io/bbolt v1.3.5
 )
-
-replace github.com/SkycoinProject/cx => ../cx
-
-replace github.com/SkycoinProject/cx-chains => ../cx-chains

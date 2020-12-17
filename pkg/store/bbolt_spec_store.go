@@ -6,8 +6,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/SkycoinProject/cx-chains/src/cipher"
-	"github.com/SkycoinProject/cx/cxgo/cxspec"
+	"github.com/skycoin/cx-chains/src/cx/cxspec"
+	"github.com/skycoin/skycoin/src/cipher"
 	"go.etcd.io/bbolt"
 )
 
@@ -33,7 +33,7 @@ func NewBboltSpecStore(db *bbolt.DB) (*BboltSpecStore, error) {
 		return nil, err
 	}
 
-	s := &BboltSpecStore{ db: db }
+	s := &BboltSpecStore{db: db}
 	return s, nil
 }
 

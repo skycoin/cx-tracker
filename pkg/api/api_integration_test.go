@@ -9,9 +9,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/SkycoinProject/cx-chains/src/cipher"
-	"github.com/SkycoinProject/cx/cxgo/cxspec"
 	"github.com/sirupsen/logrus"
+	"github.com/skycoin/cx-chains/src/cx/cxspec"
+	"github.com/skycoin/skycoin/src/cipher"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -31,7 +31,8 @@ func TestNewHTTPRouter(t *testing.T) {
 	ss, err := store.NewBboltSpecStore(db)
 	require.NoError(t, err)
 
-	httpS := httptest.NewServer(NewHTTPRouter(ss))
+	// TODO @evanlinjin: Actually provide a store.PeersStore in the future.
+	httpS := httptest.NewServer(NewHTTPRouter(ss, nil))
 	defer httpS.Close()
 
 	httpC := cxspec.NewCXTrackerClient(logrus.New(), httpS.Client(), httpS.URL)

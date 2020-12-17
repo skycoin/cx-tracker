@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/SkycoinProject/cx/cxgo/cxspec"
+	"github.com/skycoin/cx-chains/src/cx/cxspec"
 	"github.com/skycoin/dmsg/cipher"
 
 	"github.com/skycoin/cx-tracker/pkg/store"
